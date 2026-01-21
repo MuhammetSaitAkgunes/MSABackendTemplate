@@ -13,14 +13,20 @@ namespace MSABackendTemplate.Application.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICacheService _cache;
         private const string CacheKeyPrefix = "products";
         private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
 
-        public ProductService(IProductRepository productRepository, IMapper mapper, ICacheService cache)
+        public ProductService(
+            IProductRepository productRepository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ICacheService cache)
         {
             _productRepository = productRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cache = cache;
         }
@@ -32,6 +38,7 @@ namespace MSABackendTemplate.Application.Services
 
             // 2. LOGIC & PERSISTENCE
             await _productRepository.AddAsync(productEntity);
+            await _unitOfWork.SaveChangesAsync();
 
             // 3. CACHE INVALIDATION: Remove all product lists from cache
             await _cache.RemoveByPatternAsync($"{CacheKeyPrefix}:*");
@@ -42,19 +49,16 @@ namespace MSABackendTemplate.Application.Services
 
         public async Task<ServiceResult<List<ProductDto>>> GetAllProductsAsync()
         {
-            // CACHING: Try to get from cache first
-            var cachedProducts = await _cache.GetAsync<List<ProductDto>>($"{CacheKeyPrefix}:all");
-            if (cachedProducts != null)
-                return ServiceResult<List<ProductDto>>.Success(cachedProducts);
+            var products = await _cache.GetOrSetAsync(
+                $"{CacheKeyPrefix}:all",
+                async () =>
+                {
+                    var items = await _productRepository.GetAllAsync();
+                    return _mapper.Map<List<ProductDto>>(items);
+                },
+                CacheExpiration);
 
-            // Not in cache, fetch from database
-            var products = await _productRepository.GetAllAsync();
-            var productDtos = _mapper.Map<List<ProductDto>>(products);
-
-            // Store in cache
-            await _cache.SetAsync($"{CacheKeyPrefix}:all", productDtos, CacheExpiration);
-
-            return ServiceResult<List<ProductDto>>.Success(productDtos);
+            return ServiceResult<List<ProductDto>>.Success(products);
         }
 
         // NEW: Paginated products with sorting and filtering

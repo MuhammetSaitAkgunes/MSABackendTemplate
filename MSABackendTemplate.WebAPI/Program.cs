@@ -79,7 +79,9 @@ try
         // Global fallback
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
+                partitionKey: httpContext.User.Identity?.Name
+                    ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                    ?? "unknown",
                 factory: partition => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 1000,
@@ -114,6 +116,12 @@ try
     var secretKey = jwtSettings["Key"];
     var issuer = jwtSettings["Issuer"];
     var audience = jwtSettings["Audience"];
+    if (string.IsNullOrWhiteSpace(secretKey) ||
+        string.IsNullOrWhiteSpace(issuer) ||
+        string.IsNullOrWhiteSpace(audience))
+    {
+        throw new InvalidOperationException("JwtSettings configuration is missing required values.");
+    }
 
     builder.Services.AddAuthentication(options =>
     {

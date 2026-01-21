@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
 namespace MSABackendTemplate.Application.Wrappers
 {
     public class ServiceResult<T> : ServiceResult
@@ -15,8 +13,7 @@ namespace MSABackendTemplate.Application.Wrappers
             {
                 Data = data,
                 IsSuccess = true,
-                StatusCode = statusCode,
-                Errors = null // Başarılıysa hata listesi boşuna yer kaplamasın
+                StatusCode = statusCode
             };
         }
 
