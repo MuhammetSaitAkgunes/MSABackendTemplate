@@ -1,4 +1,4 @@
-﻿using MSABackendTemplate.Domain.Common;// BaseEntity'i görmek için
+﻿using MSABackendTemplate.Domain.Common;
 
 namespace MSABackendTemplate.Domain.Entities;
 
@@ -18,33 +18,37 @@ public sealed class Product : BaseEntity
     // Validation (Doğrulama) burada başlar. İsimsiz ürün olamaz!
     public Product(string name, string description, decimal price, int stock)
     {
-        // Guard Clause (Koruyucu Şartlar)
-        if (string.IsNullOrEmpty(name))
-            throw new ArgumentException("Product name cannot be empty.");
-
-        if (price <= 0)
-            throw new ArgumentException("Price must be greater than zero.");
+        // Guard Clauses - Centralized validation
+        Guard.AgainstNullOrEmpty(name, nameof(name), "Product name cannot be empty.");
+        Guard.AgainstNegativeOrZero(price, nameof(price), "Price must be greater than zero.");
+        Guard.AgainstNegative(stock, nameof(stock), "Stock cannot be negative.");
 
         Name = name;
-        Description = description;
+        Description = description ?? string.Empty;
         Price = price;
         Stock = stock;
+    }
+
+    // Protected helper to manage UpdatedAt centrally (DRY principle)
+    private void MarkAsModified()
+    {
+        UpdatedAt = DateTime.UtcNow;
     }
 
     // Davranışsal Metotlar (Rich Domain Model)
     public void UpdatePrice(decimal newPrice)
     {
-        if (newPrice <= 0) throw new ArgumentException("New price must be valid.");
+        Guard.AgainstNegativeOrZero(newPrice, nameof(newPrice), "New price must be valid.");
 
         Price = newPrice;
-        UpdatedAt = DateTime.UtcNow; // Güncelleme tarihini otomatik yönettik
+        MarkAsModified();
     }
 
     public void DecreaseStock(int amount)
     {
-        if (amount > Stock) throw new InvalidOperationException("Insufficient stock.");
+        Guard.AgainstInvalidOperation(amount > Stock, "Insufficient stock.");
 
         Stock -= amount;
-        UpdatedAt = DateTime.UtcNow;
+        MarkAsModified();
     }
 }

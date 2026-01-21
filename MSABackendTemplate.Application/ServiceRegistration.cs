@@ -8,14 +8,17 @@ namespace MSABackendTemplate.Application
 {
     public static class ServiceRegistration
     {
-        public static void AddApplicationServices(this IServiceCollection services)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Bu Assembly içindeki (Application katmanı) tüm AutoMapper profillerini bul ve kaydet.
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-            // Servisleri Scoped olarak ekliyoruz
+            // --- APPLICATION SERVICES ---
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IOrderService, OrderService>();
+
+            return services;
         }
     }
 }

@@ -1,10 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MSABackendTemplate.Application.DTOs;
 using MSABackendTemplate.Application.Interfaces;
+using MSABackendTemplate.Application.Parameters;
 
 namespace MSABackendTemplate.WebAPI.Controllers
 {
+    [Authorize] // JWT Token gerekli
+    [EnableRateLimiting("fixed")] // 100 requests per minute
     public class ProductsController : BaseApiController
     {
         private readonly IProductService _productService;
@@ -12,6 +17,13 @@ namespace MSABackendTemplate.WebAPI.Controllers
         public ProductsController(IProductService productService)
         {
             _productService = productService;
+        }
+
+        // NEW: Paginated endpoint with query parameters
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged([FromQuery] PaginationParameters parameters)
+        {
+            return CreateActionResult(await _productService.GetProductsPagedAsync(parameters));
         }
 
         [HttpGet]

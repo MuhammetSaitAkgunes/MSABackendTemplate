@@ -2,11 +2,12 @@
 
 namespace MSABackendTemplate.Application.Interfaces.Repositories;
 
-
-// IGenericRepository'den miras alarak onun tüm özelliklerine sahip olur.
-// Ekstra metot gerekirse buraya yazarız.
-public interface IProductRepository: IGenericRepository.IGenericRepository<Product>
+/// <summary>
+/// Product-specific repository interface.
+/// Inherits from IGenericRepository for common CRUD operations.
+/// </summary>
+public interface IProductRepository : IGenericRepository<Product>
 {
-    // Örnek: Task<IReadOnlyList<Product>> GetProductsByMinPrice(decimal minPrice);
-    // Şimdilik boş bırakıyoruz, Generic yetiyor.
+    // Product-specific methods can be added here in the future
+    // For now, generic CRUD operations are sufficient
 }

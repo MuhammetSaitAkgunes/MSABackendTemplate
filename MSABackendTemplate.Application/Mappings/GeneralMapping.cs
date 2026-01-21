@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using MSABackendTemplate.Domain.Entities;
 using MSABackendTemplate.Application.DTOs;
-using MSABackendTemplate.Domain.Entities;
 
-namespace NeuroArchitect.Application.Mappings
+namespace MSABackendTemplate.Application.Mappings
 {
     public class GeneralMapping : Profile
     {
@@ -15,6 +14,10 @@ namespace NeuroArchitect.Application.Mappings
 
             // CreateDto -> Entity (Veritabanına yazarken)
             CreateMap<CreateProductDto, Product>();
+
+            // Order mappings
+            CreateMap<Order, OrderDto>();
+            CreateMap<CreateOrderDto, Order>();
         }
     }
 }

@@ -1,13 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MSABackendTemplate.Application.Interfaces.Repositories;
 using MSABackendTemplate.Domain.Common;
 using MSABackendTemplate.Persistence.Contexts;
-using static MSABackendTemplate.Application.Interfaces.Repositories.IGenericRepository;
 
 namespace MSABackendTemplate.Persistence.Repositories;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
 {
-    // DbContext'e ihtiyacımız var ama onu private tutuyoruz.
     private readonly ApplicationDbContext _dbContext;
 
     public GenericRepository(ApplicationDbContext dbContext)
@@ -15,27 +14,32 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         _dbContext = dbContext;
     }
 
-    public async Task<T> AddAsync(T entity)
+    // Updated to match interface: Task (not Task<T>)
+    public async Task AddAsync(T entity)
     {
         await _dbContext.Set<T>().AddAsync(entity);
-        await _dbContext.SaveChangesAsync(); // Transaction commit edilir.
-        return entity;
-    }
-
-    public async Task DeleteAsync(T entity)
-    {
-        _dbContext.Set<T>().Remove(entity);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<IReadOnlyList<T>> GetAllAsync()
+    // Updated to match interface: DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
-        // AsNoTracking: Sadece okuma yapacağımız zaman EF Core'un 
-        // değişiklik takip mekanizmasını kapatır. Performansı %20-30 artırır.
+        var entity = await _dbContext.Set<T>().FindAsync(id);
+        if (entity != null)
+        {
+            _dbContext.Set<T>().Remove(entity);
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+
+    // Updated to match interface: List<T> (not IReadOnlyList<T>)
+    public async Task<List<T>> GetAllAsync()
+    {
         return await _dbContext.Set<T>().AsNoTracking().ToListAsync();
     }
 
-    public async Task<T> GetByIdAsync(Guid id)
+    // Updated to match interface: T? (nullable)
+    public async Task<T?> GetByIdAsync(Guid id)
     {
         return await _dbContext.Set<T>().FindAsync(id);
     }
@@ -44,5 +48,11 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
     {
         _dbContext.Entry(entity).State = EntityState.Modified;
         await _dbContext.SaveChangesAsync();
+    }
+
+    // NEW: Returns IQueryable for pagination and complex queries
+    public IQueryable<T> GetQueryable()
+    {
+        return _dbContext.Set<T>().AsNoTracking();
     }
 }
