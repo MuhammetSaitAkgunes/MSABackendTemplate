@@ -18,7 +18,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
     public async Task AddAsync(T entity)
     {
         await _dbContext.Set<T>().AddAsync(entity);
-        await _dbContext.SaveChangesAsync();
     }
 
     // Updated to match interface: DeleteAsync(Guid id)
@@ -28,7 +27,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         if (entity != null)
         {
             _dbContext.Set<T>().Remove(entity);
-            await _dbContext.SaveChangesAsync();
         }
     }
 
@@ -47,7 +45,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
     public async Task UpdateAsync(T entity)
     {
         _dbContext.Entry(entity).State = EntityState.Modified;
-        await _dbContext.SaveChangesAsync();
     }
 
     // NEW: Returns IQueryable for pagination and complex queries

@@ -13,14 +13,20 @@ namespace MSABackendTemplate.Application.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICacheService _cache;
         private const string CacheKeyPrefix = "products";
         private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
 
-        public ProductService(IProductRepository productRepository, IMapper mapper, ICacheService cache)
+        public ProductService(
+            IProductRepository productRepository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ICacheService cache)
         {
             _productRepository = productRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cache = cache;
         }
@@ -32,6 +38,7 @@ namespace MSABackendTemplate.Application.Services
 
             // 2. LOGIC & PERSISTENCE
             await _productRepository.AddAsync(productEntity);
+            await _unitOfWork.SaveChangesAsync();
 
             // 3. CACHE INVALIDATION: Remove all product lists from cache
             await _cache.RemoveByPatternAsync($"{CacheKeyPrefix}:*");

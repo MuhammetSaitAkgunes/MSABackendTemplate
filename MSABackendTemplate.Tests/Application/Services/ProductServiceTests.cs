@@ -6,6 +6,7 @@ using MSABackendTemplate.Application.Interfaces;
 using MSABackendTemplate.Application.Interfaces.Repositories;
 using MSABackendTemplate.Application.Services;
 using MSABackendTemplate.Domain.Entities;
+using System.Threading;
 using Xunit;
 
 namespace MSABackendTemplate.Tests.Application.Services;
@@ -17,6 +18,7 @@ namespace MSABackendTemplate.Tests.Application.Services;
 public class ProductServiceTests
 {
     private readonly Mock<IProductRepository> _repositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<ICacheService> _cacheMock;
     private readonly ProductService _sut; // System Under Test
@@ -24,9 +26,14 @@ public class ProductServiceTests
     public ProductServiceTests()
     {
         _repositoryMock = new Mock<IProductRepository>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
         _mapperMock = new Mock<IMapper>();
         _cacheMock = new Mock<ICacheService>();
-        _sut = new ProductService(_repositoryMock.Object, _mapperMock.Object, _cacheMock.Object);
+        _sut = new ProductService(
+            _repositoryMock.Object,
+            _unitOfWorkMock.Object,
+            _mapperMock.Object,
+            _cacheMock.Object);
     }
 
     [Fact]
@@ -49,6 +56,9 @@ public class ProductServiceTests
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Product>()))
             .Returns(Task.CompletedTask);
 
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
         _cacheMock.Setup(c => c.RemoveByPatternAsync("products:*"))
             .Returns(Task.CompletedTask);
 
@@ -61,6 +71,7 @@ public class ProductServiceTests
         result.Data.Should().NotBeEmpty();
 
         _repositoryMock.Verify(r => r.AddAsync(It.IsAny<Product>()), Times.Once);
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         _cacheMock.Verify(c => c.RemoveByPatternAsync("products:*"), Times.Once);
     }
 
