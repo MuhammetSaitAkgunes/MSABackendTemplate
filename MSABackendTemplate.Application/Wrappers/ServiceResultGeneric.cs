@@ -16,7 +16,7 @@ namespace MSABackendTemplate.Application.Wrappers
                 Data = data,
                 IsSuccess = true,
                 StatusCode = statusCode,
-                Errors = null // Başarılıysa hata listesi boşuna yer kaplamasın
+                Errors = new List<string>() // Başarılıysa boş liste dön
             };
         }
 

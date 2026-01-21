@@ -32,6 +32,13 @@ public class MemoryCacheService : ICacheService
         {
             AbsoluteExpirationRelativeToNow = expiration ?? DefaultExpiration
         };
+        options.RegisterPostEvictionCallback((evictedKey, _, _, _) =>
+        {
+            if (evictedKey is string cacheKey)
+            {
+                _cacheKeys.TryRemove(cacheKey, out _);
+            }
+        });
 
         _cache.Set(key, value, options);
         _cacheKeys.TryAdd(key, true);
