@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Muhammet Sait Akgunes[msAK-47] - 2026 - Backend Template",
+    "classifications": [
+        "Web",
+        "API",
+        "Backend"
+    ],
+    "name": "Benim .NET 8 Backend Şablonum",
+    "identity": "My.Backend.Template.v1",
+    "shortName": "mybackend",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "sourceName": "MSABackendTemplate",
+    "preferNameDirectory": true
+}
